@@ -21,8 +21,8 @@ export default {
       }
 
       const allUserIds = [...userIds, chatInitiator];
-      const chatRoom = await ChatModel.initiateChat(allUserIds, chatInitiator);
-      return res.status(200).json({ success: true, chatRoom });
+      const chat = await ChatModel.initiateChat(allUserIds, chatInitiator);
+      return res.status(200).json({ success: true, chat });
     } catch (error) {
       return res.status(500).json({ success: false, error: error })
     }

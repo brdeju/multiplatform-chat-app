@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigation } from '@react-navigation/core';
+import { View, StyleSheet, FlatList } from 'react-native';
 import Constants from 'expo-constants';
 
-import { View, StyleSheet, FlatList } from 'react-native';
 // import { ChatRoom } from '../models';
 import ChatRoomItem from '../components/ChatRoomItem';
 import { useAuth } from '../auth/Auth';
@@ -13,7 +14,8 @@ const HTTP_GET: any = {
 
 export default function ChatsScreen() {
   const [chats, setChats] = useState([]);
-  const { token } = useAuth();
+  const navigation = useNavigation();
+  const { token, user: currentUser } = useAuth();
 
   useEffect(() => {
     (async () => {
@@ -35,11 +37,18 @@ export default function ChatsScreen() {
     })();
   }, []);
 
+  const handlePress = (chat: any, user: any) => {
+    navigation.navigate('ChatRoom', {
+      id: chat.chatid,
+      name: user.username,
+    });
+  };
+
   return (
     <View style={styles.page}>
       <FlatList
         data={chats}
-        renderItem={({ item }: any) => <ChatRoomItem chat={item} />}
+        renderItem={({ item }: any) => <ChatRoomItem chat={item} onPress={handlePress} />}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item: any) => item.chatid}
       />

@@ -24,7 +24,7 @@ export default {
         return {
           isNew: false,
           message: 'retrieving an old chat room',
-          chatRoomId: availableRoom.chatid,
+          chatId: availableRoom.chatid,
         }
       }
 
@@ -33,7 +33,7 @@ export default {
       return {
         isNew: true,
         message: 'creating a new chatroom',
-        chatRoomId: newRoom.chatid,
+        chatId: newRoom.lastID,
       }
     } catch (error) {
       console.log('initiateChat error', error);
