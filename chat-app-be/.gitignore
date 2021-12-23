@@ -1,0 +1,9 @@
+node_modules/
+build/
+dist/
+.secret-*
+yarn-error.log
+**.sqlite
+.env
+
+.vscode
