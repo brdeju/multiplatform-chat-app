@@ -20,7 +20,6 @@ export default function ChatRoomScreen() {
   const { socket } = useSocket();
 
   useEffect(() => {
-    // TODO:
     socket.on('message', messageListener);
 
     return () => {
@@ -43,7 +42,7 @@ export default function ChatRoomScreen() {
     setRefreshing(true);
     const response = await get(`chat/${chatId}`, authData?.token);
     if (!response?.success) {
-      // TODO: set error
+      // TODO: handle error
       return;
     }
 
@@ -55,7 +54,7 @@ export default function ChatRoomScreen() {
     const response = await post(`chat/${chatId}`, { message }, authData?.token);
 
     if (!response?.success) {
-      // TODO: set error
+      // TODO: handle error
     }
   };
 

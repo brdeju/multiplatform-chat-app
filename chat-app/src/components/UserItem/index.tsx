@@ -1,16 +1,24 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Text, View, Pressable } from 'react-native';
 import UserAvatar from 'react-native-user-avatar';
 
 // import { User, ChatRoom, ChatRoomUser } from '../../models';
 
+import { stringToColour } from '../../helpers/colors';
 import styles from './styles';
 
 export default function UserItem({ user, onPress }: any) {
+  const color = useMemo(() => stringToColour(user?.userid), [user?.userid]);
 
   return (
     <Pressable onPress={onPress.bind(null, user)} style={styles.container}>
-      <UserAvatar size={50} name={user?.username} src={user?.imageUri} style={styles.image} />
+      <UserAvatar
+        size={50}
+        name={user?.username}
+        src={user?.imageUri}
+        bgColor={color}
+        style={styles.image}
+      />
 
       <View style={styles.rightContainer}>
         <View style={styles.row}>

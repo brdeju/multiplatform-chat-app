@@ -1,23 +1,30 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Text, View, Pressable } from 'react-native';
-import UserAvatar from 'react-native-user-avatar';
+import UserAvatar from "react-native-user-avatar";
 import moment from 'moment';
 
 // import { User, Message, ChatRoom } from '../../src/models';
 import styles from './styles';
 import { useAuth } from '../../hooks/Auth';
+import { stringToColour } from '../../helpers/colors';
 
 export default function ChatRoomItem({ chat, onPress }: any) {
   const { authData } = useAuth();
-
-  const user = chat.members.find((u: any) => u.userid !== authData?.userid);
-  const { lastMessage } = chat;
+  const { members, lastMessage } = chat;
 
   const time = lastMessage ? moment(lastMessage?.sentAt).from(moment()) : null;
+  const user = members.find((u: any) => u.userid !== authData?.userid);
+  const color = useMemo(() => stringToColour(user?.userid), [user?.userid]);
 
   return (
     <Pressable onPress={onPress.bind(null, chat, user)} style={styles.container}>
-      <UserAvatar size={50} name={user?.username} src={user?.imageUri} style={styles.image} />
+      <UserAvatar
+        size={50}
+        name={user?.username}
+        bgColor={color}
+        src={user?.imageUri}
+        style={styles.image}
+      />
 
       {!!chat.newMessages && (
         <View style={styles.badgeContainer}>

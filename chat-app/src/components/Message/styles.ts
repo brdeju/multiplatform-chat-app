@@ -38,7 +38,7 @@ export default StyleSheet.create({
     marginRight: 10,
   },
   image: {
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
   },
 });
