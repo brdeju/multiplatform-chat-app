@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import openDb from '../db';
 
 export interface IChat {
@@ -11,8 +12,8 @@ u.userid, u.username, u.lastlogon, u.lastlogoff
 FROM chats c INNER JOIN users u ON c.chatInitiator = u.userid
 WHERE c.chatid = ?;`
 const SELECT_CHAT_BY_MEMBERS = "SELECT * FROM chats WHERE userIds = ?;"
-const INSERT_CHAT = "INSERT INTO chats (userIds, chatInitiator) VALUES (?, ?);"
-const SELECT_CHATS_BY_USER = "SELECT chatid, userIds FROM chats WHERE chatInitiator = ?;"
+const INSERT_CHAT = "INSERT INTO chats (chatid, userIds, chatInitiator) VALUES (?, ?, ?);"
+const SELECT_CHATS_BY_USER = "SELECT chatid, userIds FROM chats WHERE userIds LIKE ?;"
 
 export default {
   initiateChat: async (userIds: Array<string>, chatInitiator: string) => {
@@ -28,7 +29,7 @@ export default {
         }
       }
 
-      const newRoom = await db.run(INSERT_CHAT, [userIds.sort().join(','), chatInitiator]);
+      const newRoom = await db.run(INSERT_CHAT, [uuid(), userIds.sort().join(','), chatInitiator]);
 
       return {
         isNew: true,
@@ -52,7 +53,7 @@ export default {
   getChatsByUser: async (userId: string) => {
     try {
       const db = await openDb()
-      return await db.all(SELECT_CHATS_BY_USER, [userId]);
+      return await db.all(SELECT_CHATS_BY_USER, [`%${userId}%`]);
     } catch (error) {
       console.log('initiateChat error', error);
       throw error;

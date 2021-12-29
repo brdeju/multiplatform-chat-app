@@ -1,40 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigation } from '@react-navigation/core';
 import { View, StyleSheet, FlatList } from 'react-native';
-import Constants from 'expo-constants';
 
 // import { ChatRoom } from '../models';
 import ChatRoomItem from '../components/ChatRoomItem';
-import { useAuth } from '../auth/Auth';
-
-const HTTP_GET: any = {
-  method: 'GET',
-  mode: 'cors',
-}
+import { useSocket } from '../contexts/socket';
+import { get } from '../api';
+import { useAuth } from '../hooks/Auth';
 
 export default function ChatsScreen() {
   const [chats, setChats] = useState([]);
+  const [refreshing, setRefreshing] = useState(true);
   const navigation = useNavigation();
-  const { token, user: currentUser } = useAuth();
+  const { authData } = useAuth();
+  const { socket } = useSocket();
 
   useEffect(() => {
-    (async () => {
-      const response = await fetch(`${Constants.manifest?.extra?.API_URL}/chat`, {
-        ...HTTP_GET,
-        headers: new Headers({
-          'Authorization': `Bearer ${token}`,
-          'Content-type': 'application/json',
-        }),
-      });
-      const json = await response.json();
+    socket.on('message', messageListener);
 
-      if (!json?.success) {
-        setChats([]);
-        // TODO: handle error
-        return;
-      }
-      setChats(json.conversations);
-    })();
+    return () => {
+      // socket.off('message', messageListener);
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    loadChats();
   }, []);
 
   const handlePress = (chat: any, user: any) => {
@@ -44,6 +35,26 @@ export default function ChatsScreen() {
     });
   };
 
+  const loadChats = async () => {
+    setRefreshing(true);
+    const response = await get('chat', authData?.token);
+    if (!response?.success) {
+      setChats([]);
+      // TODO: handle error
+      return;
+    }
+    setChats(response.conversations);
+    setRefreshing(false);
+  };
+
+  const handleRefresh = async () => {
+    await loadChats();
+  };
+
+  const messageListener = async () => {
+    await loadChats();
+  };
+
   return (
     <View style={styles.page}>
       <FlatList
@@ -51,6 +62,8 @@ export default function ChatsScreen() {
         renderItem={({ item }: any) => <ChatRoomItem chat={item} onPress={handlePress} />}
         showsVerticalScrollIndicator={false}
         keyExtractor={(item: any) => item.chatid}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
       />
     </View>
   );

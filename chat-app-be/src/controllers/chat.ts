@@ -46,7 +46,7 @@ export default {
       const currentLoggedUser = req.userId;
       const message = await MessageModel.createPostInChat(chatId, content, currentLoggedUser);
 
-      WebSockets.io.sockets.in(chatId).emit('new message', { message });
+      WebSockets.io.emit('message', message);
       return res.status(200).json({ success: true, message });
     } catch (error) {
       return res.status(500).json({ success: false, error: error })
@@ -56,6 +56,7 @@ export default {
     try {
       const { userId } = req;
       const chats = await ChatModel.getChatsByUser(userId)
+      console.log('chats', userId, chats)
 
       if (!chats?.length) {
         return res.status(200).json({
@@ -73,7 +74,7 @@ export default {
 
       const chatsUsers = await Promise.all(usersPromises);
       const chatsMessages = await Promise.all(messagesPromises);
-
+      console.log('chats users and messages', chatsUsers, messagesPromises)
       const conversations = chats.map((chat: any, id: number) => {
         return {
           ...chat,
@@ -87,6 +88,7 @@ export default {
         conversations,
       });
     } catch (error) {
+      console.log('chats error', error)
       return res.status(500).json({ success: false, error });
     }
   },

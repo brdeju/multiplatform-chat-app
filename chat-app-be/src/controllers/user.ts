@@ -82,14 +82,13 @@ export default {
         return res.status(400).json({ "error": errors.join(", ") });
       }
 
-      const id = await UserModel.createUser(username, email, password);
+      const user = await UserModel.createUser(username, email, password);
 
       res
         .status(200)
         .json({
           success: true,
-          "data": { username, email },
-          "id": id,
+          user,
         })
     } catch (error) {
       return res.status(500).json({ success: false, error })
@@ -101,6 +100,7 @@ export default {
       .json({
         success: true,
         token: req.authToken,
+        user: req.user,
       });
   }
 }

@@ -2,24 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Text, Pressable, View } from 'react-native';
 import UserAvatar from 'react-native-user-avatar';
 import moment from 'moment';
-import { useAuth } from '../../auth/Auth';
 import styles from './styles';
+import { useAuth } from '../../hooks/Auth';
 
 const Message = ({ message: propMessage }: any) => {
-  const { user } = useAuth();
+  const { authData } = useAuth();
   const [message, setMessage] = useState<any>(propMessage);
   const [isMe, setIsMe] = useState<boolean | null>(null);
 
   useEffect(() => {
     setMessage(propMessage);
-    setIsMe(message.userid === user.userid);
+    setIsMe(message.userid === authData?.userid);
   }, [propMessage]);
 
   // TODO: merge following message from same user
 
   return (
     <Pressable style={[styles.container, isMe ? styles.rightContainer : styles.leftContainer]}>
-      <UserAvatar size={40} name={user?.username} src={user?.imageUri} style={styles.image} />
+      <UserAvatar size={40} name={authData?.username} src={authData?.imageUri} style={styles.image} />
 
       <View style={[styles.message, isMe ? styles.rightMessage : styles.leftMessage]}>
         <Text style={{ fontSize: 16, color: isMe ? 'black' : 'white' }}>{message.message}</Text>

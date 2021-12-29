@@ -8,6 +8,6 @@ const router = express.Router();
 
 router
   .get('/', (req: any, res: any, next: any) => res.json({ "message": "Ok" }))
-  .post('/login/:id', encode, user.onLogin);
+  .post('/login', encode, user.onLogin);
 
 export default router;

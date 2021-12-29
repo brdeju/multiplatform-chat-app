@@ -4,13 +4,13 @@ import UserAvatar from 'react-native-user-avatar';
 import moment from 'moment';
 
 // import { User, Message, ChatRoom } from '../../src/models';
-import { useAuth } from '../../auth/Auth';
 import styles from './styles';
+import { useAuth } from '../../hooks/Auth';
 
 export default function ChatRoomItem({ chat, onPress }: any) {
-  const { user: currentUser } = useAuth();
+  const { authData } = useAuth();
 
-  const user = chat.members.find((u: any) => u.userid !== currentUser?.userid);
+  const user = chat.members.find((u: any) => u.userid !== authData?.userid);
   const { lastMessage } = chat;
 
   const time = lastMessage ? moment(lastMessage?.sentAt).from(moment()) : null;

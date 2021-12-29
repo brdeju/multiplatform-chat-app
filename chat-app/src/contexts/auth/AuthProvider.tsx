@@ -1,22 +1,22 @@
 import React, { ReactNode, useEffect, useMemo, useReducer } from 'react'
 import AuthContext from './AuthContext'
 import AuthReducer from './AuthReducer'
-import { AuthContextActions } from './types'
-import { getToken, setToken, removeToken } from './utils'
+import { AuthContextActions, AuthData } from './types'
+import { getAuthData, setAuthData, removeAuthData } from './utils'
 
 export default ({ children }: { children: ReactNode }) => {
   const [state, dispatch] = useReducer(AuthReducer, {
-    status: 'idle',
-    token: null,
-    user: null,
-  })
+    authData: undefined,
+    loading: true,
+    isLoggedIn: false,
+  });
 
   useEffect(() => {
     const initState = async () => {
       try {
-        const token = await getToken()
-        if (token !== null) {
-          dispatch({ type: 'SIGN_IN', token })
+        const authData = await getAuthData()
+        if (authData !== null) {
+          dispatch({ type: 'RESTORE', authData })
         } else {
           dispatch({ type: 'SIGN_OUT' })
         }
@@ -31,20 +31,17 @@ export default ({ children }: { children: ReactNode }) => {
 
   const authActions: AuthContextActions = useMemo(
     () => ({
-      setUser: async (user: object) => {
-        dispatch({ type: 'SET_USER', user })
-      },
-      signIn: async (token: string) => {
-        dispatch({ type: 'SIGN_IN', token })
-        await setToken(token)
+      signIn: async (authData: AuthData) => {
+        dispatch({ type: 'SIGN_IN', authData })
+        await setAuthData(authData)
       },
       signOut: async () => {
-        await removeToken() // TODO: use Vars
+        await removeAuthData()
         dispatch({ type: 'SIGN_OUT' })
       },
     }),
     []
-  )
+  );
 
   return (
     <AuthContext.Provider value={{ ...state, ...authActions }}>

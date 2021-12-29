@@ -1,68 +1,66 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { FlatList, SafeAreaView, StyleSheet } from 'react-native';
 import { useRoute } from '@react-navigation/core';
-import Constants from 'expo-constants';
 
 import Message from '../components/Message';
 import MessageInput from '../components/MessageInput';
 
 import { ChatRoomScreenRouteProp } from '../../types';
-import { useAuth } from '../auth/Auth';
-// import { Message as MessageModel } from '../models';
-
-// TODO: move to consts
-const HTTP_GET: any = {
-  method: 'GET',
-  mode: 'cors',
-}
-const HTTP_POST: any = {
-  method: 'POST',
-  mode: 'cors',
-}
+import { useSocket } from '../contexts/socket';
+import { get, post } from '../api';
+import { useAuth } from '../hooks/Auth';
 
 export default function ChatRoomScreen() {
   const route = useRoute<ChatRoomScreenRouteProp>();
   const { name, id: chatId } = route.params;
   const [messages, setMessages] = useState<any>([]);
+  const [refreshing, setRefreshing] = useState(true);
   const listRef = useRef<any>();
-  const { token } = useAuth();
+  const { authData } = useAuth();
+  const { socket } = useSocket();
 
   useEffect(() => {
-    (async () => {
-      const response = await fetch(`${Constants.manifest?.extra?.API_URL}/chat/${chatId}`, {
-        ...HTTP_GET,
-        headers: new Headers({
-          'Authorization': `Bearer ${token}`,
-          'Content-type': 'application/json',
-        }),
-      });
-      const json = await response.json();
-      if (!json?.success) {
-        // TODO: set error
-        return;
-      }
-      setMessages(json.messages);
-    })();
+    // TODO:
+    socket.on('message', messageListener);
+
+    return () => {
+      socket.off('message', messageListener);
+      socket.disconnect();
+    };
+  }, []);
+
+  useEffect(() => {
+    loadMessages();
   }, [chatId]);
 
-  const handleSubmit = async (message: string) => {
-    const response = await fetch(`${Constants.manifest?.extra?.API_URL}/chat/${chatId}`, {
-      ...HTTP_POST,
-      headers: new Headers({
-        'Authorization': `Bearer ${token}`,
-        'Content-type': 'application/json',
-      }),
-      body: JSON.stringify({ message })
+  const messageListener = (message: any) => {
+    setMessages((prevMessages: any) => {
+      return [message, ...prevMessages];
     });
-    const json = await response.json();
-    if (!json?.success) {
+  };
+
+  const loadMessages = async () => {
+    setRefreshing(true);
+    const response = await get(`chat/${chatId}`, authData?.token);
+    if (!response?.success) {
       // TODO: set error
       return;
     }
-    setMessages([
-      json.message,
-      ...messages,
-    ]);
+
+    setMessages(response.messages);
+    setRefreshing(false);
+  }
+
+  const handleSubmit = async (message: string) => {
+    const response = await post(`chat/${chatId}`, { message }, authData?.token);
+
+    if (!response?.success) {
+      // TODO: set error
+    }
+  };
+
+  const handleRefresh = async () => {
+    await loadMessages();
   };
 
   return (
@@ -73,6 +71,8 @@ export default function ChatRoomScreen() {
         showsVerticalScrollIndicator={false}
         renderItem={({ item }: any) => <Message message={item} />}
         keyExtractor={(item: any) => item.messageid}
+        onRefresh={handleRefresh}
+        refreshing={refreshing}
         inverted={true}
       />
       <MessageInput onSubmit={handleSubmit} />

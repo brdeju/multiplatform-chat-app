@@ -5,19 +5,20 @@ export default (prevState: AuthState, action: AuthAction): AuthState => {
     case 'SIGN_IN':
       return {
         ...prevState,
-        status: 'signIn',
-        token: action.token,
+        loading: false,
+        authData: action.authData,
       }
     case 'SIGN_OUT':
       return {
         ...prevState,
-        status: 'signOut',
-        token: null,
+        loading: false,
+        authData: undefined,
       }
-    case 'SET_USER':
+    case 'RESTORE':
       return {
         ...prevState,
-        user: action.user,
+        loading: false,
+        authData: action.authData,
       }
   }
 }

@@ -3,7 +3,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import useCachedResources from './src/hooks/useCachedResources';
-import AuthProvider from './src/auth/AuthProvider';
+import SocketProvider from './src/contexts/socket';
+import AuthProvider from './src/contexts/auth';
 import Main from './src/Main';
 
 function App() {
@@ -14,10 +15,12 @@ function App() {
   } else {
     return (
       <AuthProvider>
-        <SafeAreaProvider>
-          <Main />
-          <StatusBar />
-        </SafeAreaProvider>
+        <SocketProvider>
+          <SafeAreaProvider>
+            <Main />
+            <StatusBar />
+          </SafeAreaProvider>
+        </SocketProvider>
       </AuthProvider>
     );
   }

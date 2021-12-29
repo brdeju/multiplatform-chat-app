@@ -10,7 +10,7 @@ import userRouter from "./routes/user";
 import chatRouter from "./routes/chat";
 import deleteRouter from "./routes/delete";
 // middlewaress
-import { decode } from './middlewares/jwt'
+import { decode, socketAuth } from './middlewares/jwt'
 // socket configuration
 import WebSockets from "./utils/WebSockets";
 
@@ -37,7 +37,7 @@ app.use("/user", userRouter);
 app.use("/chat", decode, chatRouter);
 app.use("/delete", deleteRouter);
 app.use((req, res) => {
-    res.status(404);
+  res.status(404);
 });
 
 io.on('connection', WebSockets.connection);

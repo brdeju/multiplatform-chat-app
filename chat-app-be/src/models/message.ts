@@ -1,3 +1,4 @@
+import { v4 as uuid } from 'uuid';
 import openDb from '../db';
 
 enum MESSAGE_TYPES {
@@ -19,12 +20,12 @@ export interface IMessage {
   readBy: IReadBy[];
 }
 
-const INSERT_CHAT_MESSAGE = "INSERT INTO messages (chatid, postedBy, message, sentAt, type, readBy) VALUES (?, ?, ?, ?, ?, ?);"
+const INSERT_CHAT_MESSAGE = "INSERT INTO messages (messageid, chatid, postedBy, message, sentAt, type, readBy) VALUES (?, ?, ?, ?, ?, ?, ?);"
 const SELECT_CHAT_MESSAGE = `SELECT
 m.messageid, m.chatid, m.message, m.sentAt, m.type, m.readBy,
 u.userid, u.username, u.lastlogon, u.lastlogoff
 FROM messages m INNER JOIN users u ON m.postedBy = u.userid
-WHERE m.messageid = ?;`
+WHERE m.rowid = ?;`
 const SELECT_MESSAGES_BY_CHAT_ID = `SELECT
 m.messageid, m.chatid, m.message, m.sentAt, m.type, m.readBy,
 u.userid, u.username, u.lastlogon, u.lastlogoff
@@ -36,8 +37,11 @@ export default {
   createPostInChat: async (chatId: string, message: string, postedBy: string) => {
     try {
       const db = await openDb()
-      const result = await db.run(INSERT_CHAT_MESSAGE, [chatId, postedBy, message, Date.now(), MESSAGE_TYPES.TEXT, postedBy,]);
-      const chatMessage = await db.get(SELECT_CHAT_MESSAGE, [result?.lastID]);
+      const chatMessage = await db.transaction(async (_db: any) => {
+        const result = await db.run(INSERT_CHAT_MESSAGE, [uuid(), chatId, postedBy, message, Date.now(), MESSAGE_TYPES.TEXT, postedBy,]);
+        return await db.get(SELECT_CHAT_MESSAGE, [result?.lastID]);
+      })
+
       // TODO: store and get info about chatMessage.readBy users
       // const readByUsers = await db.get('SELECT * FROM users WHERE userid IN (?)', chatMessage.readBy)
       // console.log('readByUsers', readByUsers);
