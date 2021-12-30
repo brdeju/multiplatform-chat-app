@@ -66,7 +66,10 @@ export default {
   },
   onCreateUser: async (req: any, res: any) => {
     try {
-      const { username, email, password } = req.body;
+      const {
+        body: { username, email, password },
+        file,
+      } = req;
 
       const errors = []
       if (!password) {
@@ -82,7 +85,7 @@ export default {
         return res.status(400).json({ "error": errors.join(", ") });
       }
 
-      const user = await UserModel.createUser(username, email, password);
+      const user = await UserModel.createUser(username, email, password, file);
 
       res
         .status(200)

@@ -7,12 +7,13 @@ import MessageInput from '../components/MessageInput';
 
 import { ChatRoomScreenRouteProp } from '../../types';
 import { useSocket } from '../contexts/socket';
-import { get, post } from '../api';
+import { get, post, postAttachment } from '../api';
 import { useAuth } from '../hooks/Auth';
+import { ImageInfo } from 'expo-image-picker';
 
 export default function ChatRoomScreen() {
   const route = useRoute<ChatRoomScreenRouteProp>();
-  const { name, id: chatId } = route.params;
+  const { id: chatId } = route.params;
   const [messages, setMessages] = useState<any>([]);
   const [refreshing, setRefreshing] = useState(true);
   const listRef = useRef<any>();
@@ -23,7 +24,6 @@ export default function ChatRoomScreen() {
     socket.on('message', messageListener);
 
     return () => {
-      socket.off('message', messageListener);
       socket.disconnect();
     };
   }, []);
@@ -33,9 +33,7 @@ export default function ChatRoomScreen() {
   }, [chatId]);
 
   const messageListener = (message: any) => {
-    setMessages((prevMessages: any) => {
-      return [message, ...prevMessages];
-    });
+    setMessages((prevMessages: any) => [message, ...prevMessages]);
   };
 
   const loadMessages = async () => {
@@ -50,11 +48,32 @@ export default function ChatRoomScreen() {
     setRefreshing(false);
   }
 
-  const handleSubmit = async (message: string) => {
-    const response = await post(`chat/${chatId}`, { message }, authData?.token);
+  const makeRequest = (message: string, image: ImageInfo) => {
+    if (!image) {
+      return post(`chat/${chatId}`, { message }, authData?.token);
+    }
 
-    if (!response?.success) {
-      // TODO: handle error
+    let localUri = image.uri;
+    let filename = localUri.split('/').pop() as string;
+    let match = /\.(\w+)$/.exec(filename);
+    let type = match ? `image/${match[1]}` : `image`;
+
+    const formData = new FormData();
+    formData.append('message', message);
+    formData.append('image', { uri: localUri, name: filename, type });
+
+    return postAttachment(`chat/${chatId}`, formData, authData?.token);
+  }
+
+  const handleSubmit = async ({ message, image }: { message: string, image: ImageInfo }) => {
+    try {
+      const response = await makeRequest(message, image);
+
+      if (!response?.success) {
+        // TODO: handle error
+      }
+    } catch (error) {
+      console.log('error', error)
     }
   };
 

@@ -8,7 +8,7 @@ export interface IChat {
 }
 
 const SELECT_CHAT_BY_ID = `SELECT c.chatid, c.userIds,
-u.userid, u.username, u.lastlogon, u.lastlogoff
+u.userid, u.username, u.lastlogon, u.lastlogoff, u.avatar
 FROM chats c INNER JOIN users u ON c.chatInitiator = u.userid
 WHERE c.chatid = ?;`
 const SELECT_CHAT_BY_MEMBERS = "SELECT * FROM chats WHERE userIds = ?;"

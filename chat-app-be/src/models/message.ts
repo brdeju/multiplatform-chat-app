@@ -1,5 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import openDb from '../db';
+import { getFileMeta } from '../middlewares/multer';
+import { File } from '../types/types';
 
 enum MESSAGE_TYPES {
   TEXT,
@@ -20,25 +22,31 @@ export interface IMessage {
   readBy: IReadBy[];
 }
 
-const INSERT_CHAT_MESSAGE = "INSERT INTO messages (messageid, chatid, postedBy, message, sentAt, type, readBy) VALUES (?, ?, ?, ?, ?, ?, ?);"
+const INSERT_CHAT_MESSAGE = "INSERT INTO messages (messageid, chatid, postedBy, message, sentAt, type, readBy, attachment, attachmentMeta) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);"
 const SELECT_CHAT_MESSAGE = `SELECT
 m.messageid, m.chatid, m.message, m.sentAt, m.type, m.readBy,
-u.userid, u.username, u.lastlogon, u.lastlogoff
+m.attachment, m.attachmentMeta,
+u.userid, u.username, u.lastlogon, u.lastlogoff, u.avatar
 FROM messages m INNER JOIN users u ON m.postedBy = u.userid
 WHERE m.rowid = ?;`
 const SELECT_MESSAGES_BY_CHAT_ID = `SELECT
 m.messageid, m.chatid, m.message, m.sentAt, m.type, m.readBy,
-u.userid, u.username, u.lastlogon, u.lastlogoff
+m.attachment, m.attachmentMeta,
+u.userid, u.username, u.lastlogon, u.lastlogoff, u.avatar
 FROM messages m INNER JOIN users u ON m.postedBy = u.userid
 WHERE m.chatid = ?
 ORDER BY m.sentAt DESC;`
 
 export default {
-  createPostInChat: async (chatId: string, message: string, postedBy: string) => {
+  createPostInChat: async (chatId: string, message: string, postedBy: string, file: File) => {
     try {
       const db = await openDb()
       const chatMessage = await db.transaction(async (_db: any) => {
-        const result = await db.run(INSERT_CHAT_MESSAGE, [uuid(), chatId, postedBy, message, Date.now(), MESSAGE_TYPES.TEXT, postedBy,]);
+        const result = await db.run(INSERT_CHAT_MESSAGE, [
+          uuid(), chatId, postedBy, message,
+          Date.now(), MESSAGE_TYPES.TEXT, postedBy,
+          file?.path || null, JSON.stringify(getFileMeta(file))
+        ]);
         return await db.get(SELECT_CHAT_MESSAGE, [result?.lastID]);
       })
 

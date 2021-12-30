@@ -37,8 +37,12 @@ export default StyleSheet.create({
     backgroundColor: grey,
     marginRight: 10,
   },
-  image: {
+  avatar: {
     width: 30,
     height: 30,
+  },
+  image: {
+    width: 160,
+    height: 160,
   },
 });

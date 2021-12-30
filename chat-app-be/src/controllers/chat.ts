@@ -29,14 +29,17 @@ export default {
   },
   postMessage: async (req: any, res: any) => {
     try {
-      const { chatId } = req.params;
-      const { message: content } = req.body;
+      const {
+        params: { chatId },
+        body: { message: content },
+        file,
+      } = req;
 
       const errors = []
       if (!chatId) {
         errors.push("No chat selected");
       }
-      if (!content) {
+      if (!file && !content) {
         errors.push("No message");
       }
       if (errors.length) {
@@ -44,11 +47,12 @@ export default {
       }
 
       const currentLoggedUser = req.userId;
-      const message = await MessageModel.createPostInChat(chatId, content, currentLoggedUser);
+      const message = await MessageModel.createPostInChat(chatId, content || '', currentLoggedUser, file);
 
       WebSockets.io.emit('message', message);
       return res.status(200).json({ success: true, message });
     } catch (error) {
+      console.log('postMessage error', error)
       return res.status(500).json({ success: false, error: error })
     }
   },

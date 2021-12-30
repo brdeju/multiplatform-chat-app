@@ -1,21 +1,23 @@
 import md5 from 'md5';
 import { v4 as uuid } from 'uuid';
 import openDb from '../db';
+import { File } from '../types/types';
 
 export interface IUser {
   userid: string;
   username: string;
   password: string;
   email: string;
+  avatar: string;
   lastlogon: number;
   lastlogoff: number;
 }
 
-const INSERT_USER = "INSERT INTO users (userid, username, email, password, lastlogon) VALUES (?, ?, ?, ?, ?);"
-const NEW_USER_ID = "SELECT userid, username, email, lastlogon, lastlogoff FROM users WHERE rowid = ?;"
-const LOG_IN = "SELECT userid, username, email, lastlogon, lastlogoff FROM users WHERE email = ? AND password = ?;"
-const SELECT_USER_BY_ID = "SELECT userid, username, email, lastlogon, lastlogoff FROM users WHERE userid = ?;"
-const SELECT_USERS_BY_IDS = "SELECT userid, username, lastlogon, lastlogoff FROM users"
+const INSERT_USER = "INSERT INTO users (userid, username, email, password, lastlogon, avatar) VALUES (?, ?, ?, ?, ?, ?);"
+const NEW_USER_ID = "SELECT userid, username, email, lastlogon, lastlogoff, avatar FROM users WHERE rowid = ?;"
+const LOG_IN = "SELECT userid, username, email, lastlogon, lastlogoff, avatar FROM users WHERE email = ? AND password = ?;"
+const SELECT_USER_BY_ID = "SELECT userid, username, email, lastlogon, lastlogoff, avatar FROM users WHERE userid = ?;"
+const SELECT_USERS_BY_IDS = "SELECT userid, username, lastlogon, lastlogoff, avatar FROM users"
 
 export default {
   logIn: async (email: string, password: string): Promise<IUser> => {
@@ -34,10 +36,10 @@ export default {
       throw error.toString()
     }
   },
-  createUser: async (username: string, email: string, password: string): Promise<string> => {
+  createUser: async (username: string, email: string, password: string, file: File): Promise<string> => {
     try {
       const db = await openDb()
-      const params = [uuid(), username, email, md5(password), Date.now()]
+      const params = [uuid(), username, email, md5(password), Date.now(), file?.path || null]
       const newUser = await db.transaction(async (_db: any) => {
         const result = await db.run(INSERT_USER, params);
         return await db.get(NEW_USER_ID, [result?.lastID]);

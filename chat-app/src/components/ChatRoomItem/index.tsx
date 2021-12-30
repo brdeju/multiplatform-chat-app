@@ -7,6 +7,7 @@ import moment from 'moment';
 import styles from './styles';
 import { useAuth } from '../../hooks/Auth';
 import { stringToColour } from '../../helpers/colors';
+import { getFile } from '../../api';
 
 export default function ChatRoomItem({ chat, onPress }: any) {
   const { authData } = useAuth();
@@ -14,6 +15,7 @@ export default function ChatRoomItem({ chat, onPress }: any) {
 
   const time = lastMessage ? moment(lastMessage?.sentAt).from(moment()) : null;
   const user = members.find((u: any) => u.userid !== authData?.userid);
+  const isMe = lastMessage?.userid === authData?.userid;
   const color = useMemo(() => stringToColour(user?.userid), [user?.userid]);
 
   return (
@@ -22,7 +24,7 @@ export default function ChatRoomItem({ chat, onPress }: any) {
         size={50}
         name={user?.username}
         bgColor={color}
-        src={user?.imageUri}
+        src={getFile(user?.avatar)}
         style={styles.image}
       />
 
@@ -38,7 +40,11 @@ export default function ChatRoomItem({ chat, onPress }: any) {
           <Text style={styles.text}>{time}</Text>
         </View>
         <Text numberOfLines={1} style={styles.text}>
-          {lastMessage?.message}
+          {
+            !lastMessage?.message && lastMessage?.attachment ?
+              `${isMe ? 'You s' : 'S' }ent image` :
+              lastMessage?.message
+          }
         </Text>
       </View>
     </Pressable>

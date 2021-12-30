@@ -38,6 +38,7 @@ const StyledInput = styled.TextInput`
   font-size: 16px;
   padding-left: 8px;
   background-color: ${(props: StyledInputProps) => Colors[props.theme].background};
+  color: ${(props: StyledInputProps) => Colors[props.theme].text};
 `;
 
 export default ({ label, error, ...textInputProps }: TextInputProps & InputProps) => {

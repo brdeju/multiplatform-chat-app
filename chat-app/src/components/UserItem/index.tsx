@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Text, View, Pressable } from 'react-native';
 import UserAvatar from 'react-native-user-avatar';
+import { getFile } from '../../api';
 
 // import { User, ChatRoom, ChatRoomUser } from '../../models';
 
@@ -15,7 +16,7 @@ export default function UserItem({ user, onPress }: any) {
       <UserAvatar
         size={50}
         name={user?.username}
-        src={user?.imageUri}
+        src={getFile(user?.avatar)}
         bgColor={color}
         style={styles.image}
       />

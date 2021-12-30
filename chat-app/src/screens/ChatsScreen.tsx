@@ -52,6 +52,7 @@ export default function ChatsScreen() {
   };
 
   const messageListener = async () => {
+    console.log('messageListener')
     await loadChats();
   };
 

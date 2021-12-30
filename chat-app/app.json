@@ -22,6 +22,9 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "chatapp.notifications",
+      "permissions": [ "NOTIFICATIONS" ],
+      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -31,7 +34,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "extra": {
-      "API_URL": "http://localhost:3000"
+      "API_URL": "http://192.168.1.4:3000"
     }
   }
 }

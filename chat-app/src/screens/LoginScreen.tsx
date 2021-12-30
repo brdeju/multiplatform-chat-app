@@ -14,20 +14,24 @@ const LoginScreen = () => {
 
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (data: any): Promise<{ message: string, success: boolean }> => {
+  const handleSubmit = async (data: any): Promise<{ message: string, success: boolean } | void> => {
     setLoading(true);
-    data.password = md5(data.password);
-    const response = await post('login', data);
+    try {
+      data.password = md5(data.password);
+      const response = await post('login', data);
 
-    if (response?.success) {
-      await auth?.signIn?.({ token: response.token, ...response.user });
-    } else {
+      if (response?.success) {
+        await auth?.signIn?.({ token: response.token, ...response.user });
+      } else {
+        setLoading(false);
+      }
+
+      return {
+        success: response?.success,
+        message: response?.message,
+      }
+    } catch (error) {
       setLoading(false);
-    }
-
-    return {
-      success: response?.success,
-      message: response?.message,
     }
   }
 
