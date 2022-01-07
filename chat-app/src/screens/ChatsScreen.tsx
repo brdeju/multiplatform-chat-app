@@ -19,8 +19,7 @@ export default function ChatsScreen() {
     socket.on('message', messageListener);
 
     return () => {
-      // socket.off('message', messageListener);
-      socket.disconnect();
+      socket.off('message', messageListener);
     };
   }, []);
 

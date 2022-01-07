@@ -24,7 +24,7 @@ export default function ChatRoomScreen() {
     socket.on('message', messageListener);
 
     return () => {
-      socket.disconnect();
+      socket.off('message', messageListener);
     };
   }, []);
 
@@ -58,9 +58,10 @@ export default function ChatRoomScreen() {
     let match = /\.(\w+)$/.exec(filename);
     let type = match ? `image/${match[1]}` : `image`;
 
+    const blob: any = { uri: localUri, name: filename, type };
     const formData = new FormData();
     formData.append('message', message);
-    formData.append('image', { uri: localUri, name: filename, type });
+    formData.append('image', blob);
 
     return postAttachment(`chat/${chatId}`, formData, authData?.token);
   }

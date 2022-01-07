@@ -9,5 +9,7 @@ const router = express.Router();
 router
   .get('/', (req: any, res: any, next: any) => res.json({ "message": "Ok" }))
   .post('/login', encode, user.onLogin);
+  // TODO: logout
+  // .post('logout', )
 
 export default router;

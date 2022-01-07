@@ -16,6 +16,7 @@ export const encode = async (req: any, res: any, next: any) => {
     const authToken = jwt.sign(payload, SECRET_KEY);
     req.authToken = authToken;
     req.user = user;
+
     return next();
   } catch (error) {
     return res.status(400).json({ success: false, message: 'No user with given email and/or password exists' });
@@ -40,29 +41,4 @@ export const decode = (req: any, res: any, next: any) => {
   } catch (error) {
     return res.status(401).json({ success: false, message: error });
   }
-}
-
-export const socketAuth = async (socket: any, next: any) => {
-  const { token = null } = socket.handshake.query || {};
-
-  if (token) {
-    try {
-      const [authType, accessToken] = token.trim().split(' ');
-      if (authType !== 'Bearer') {
-        throw new Error('Expected a Bearer token');
-      }
-
-      const payload = (jwt.verify(accessToken, SECRET_KEY) as JwtPayload);
-      socket.userId = payload.userId;
-
-      // users.set(socket, {
-      //   id: user.id,
-      //   name: [user.profile.firstName, user.profile.lastName].filter(Boolean).join(' '),
-      // });
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  next();
 }

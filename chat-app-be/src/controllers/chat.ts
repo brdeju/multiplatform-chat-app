@@ -1,6 +1,7 @@
 import ChatModel from '../models/chat';
 import MessageModel from '../models/message';
 import UserModel from '../models/user';
+import ExpoPushNotifications from '../utils/ExpoPushNotifications';
 import WebSockets from '../utils/WebSockets';
 
 export default {
@@ -48,8 +49,26 @@ export default {
 
       const currentLoggedUser = req.userId;
       const message = await MessageModel.createPostInChat(chatId, content || '', currentLoggedUser, file);
+      const chat = await ChatModel.getChatById(message.chatid);
 
-      WebSockets.io.emit('message', message);
+      // TODO: some better way to do this ?
+      const ws = WebSockets.io.of('/');
+      for (let [id, socket] of ws.sockets) {
+        const socketUserId = socket?.client?.user?.userid;
+        if (chat.userIds.split(',').indexOf(socketUserId) === -1) {
+          continue;
+        }
+
+        // console.log('push notif', socket?.client?.user?.pushToken);
+        ws.to(id).emit('message', message);
+        if (socket?.client?.user?.pushToken) {
+          continue;
+        }
+        // TODO: prepare notification title and body
+        // console.log('message', message)
+        ExpoPushNotifications.handlePushNotification({ title: '', body: '' })
+      }
+
       return res.status(200).json({ success: true, message });
     } catch (error) {
       console.log('postMessage error', error)

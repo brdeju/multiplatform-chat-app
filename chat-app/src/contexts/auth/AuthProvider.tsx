@@ -3,8 +3,12 @@ import AuthContext from './AuthContext'
 import AuthReducer from './AuthReducer'
 import { AuthContextActions, AuthData } from './types'
 import { getAuthData, setAuthData, removeAuthData } from './utils'
+import { useSocket } from '../socket'
+import { usePushNotifications } from '../pushNotifications'
 
 export default ({ children }: { children: ReactNode }) => {
+  const { pushToken } = usePushNotifications();
+  const { socket } = useSocket();
   const [state, dispatch] = useReducer(AuthReducer, {
     authData: undefined,
     loading: true,
@@ -16,8 +20,10 @@ export default ({ children }: { children: ReactNode }) => {
       try {
         const authData = await getAuthData()
         if (authData !== null) {
-          dispatch({ type: 'RESTORE', authData })
+          socket?.emit?.('authentication', authData)
+          dispatch({ type: 'RESTORE', authData: { ...authData, pushToken } })
         } else {
+          socket?.emit?.('logout')
           dispatch({ type: 'SIGN_OUT' })
         }
       } catch (e) {
@@ -32,15 +38,17 @@ export default ({ children }: { children: ReactNode }) => {
   const authActions: AuthContextActions = useMemo(
     () => ({
       signIn: async (authData: AuthData) => {
-        dispatch({ type: 'SIGN_IN', authData })
+        socket?.emit?.('authentication', authData)
+        dispatch({ type: 'SIGN_IN', authData: { ...authData, pushToken } })
         await setAuthData(authData)
       },
       signOut: async () => {
+        socket?.emit?.('logout')
         await removeAuthData()
         dispatch({ type: 'SIGN_OUT' })
       },
     }),
-    []
+    [pushToken]
   );
 
   return (

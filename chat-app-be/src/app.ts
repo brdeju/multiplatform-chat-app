@@ -1,7 +1,7 @@
 import express from "express";
 import http from "http";
-import { Server } from "socket.io";
 import cors from "cors";
+import { Socket, Server } from "socket.io";
 // database
 import openDb from './db';
 // routes
@@ -13,6 +13,7 @@ import deleteRouter from "./routes/delete";
 import { decode } from './middlewares/jwt'
 // socket configuration
 import WebSockets from "./utils/WebSockets";
+import ExpoPushNotifications from "./utils/ExpoPushNotifications";
 
 const port = process.env.PORT || 3000;
 
@@ -21,16 +22,21 @@ app.set("port", port);
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use('/public', express.static('public'))
+app.use('/public', express.static('public'));
 
 // init DB
 openDb()
 
 // Create HTTP server.
 const server = http.createServer(app);
-const io = new Server(server);
 
+// push notifications
+ExpoPushNotifications.init();
+
+// sockets
+const io = new Server(server);
 WebSockets.init(io);
+io.on('connection', (socket: Socket) => console.log('client connected', socket.id));
 
 // Routing
 app.use("/", indexRouter);
@@ -40,8 +46,6 @@ app.use("/delete", deleteRouter);
 app.use((req, res) => {
   res.status(404);
 });
-
-io.on('connection', WebSockets.connection);
 
 /** Listen on provided port, on all network interfaces. */
 server.listen(port);

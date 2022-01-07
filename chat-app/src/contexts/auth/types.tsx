@@ -5,6 +5,7 @@ export type AuthData = {
   username: string;
   lastlogon: number;
   imageUri?: string;
+  pushToken?: string;
 };
 
 export interface AuthState {

@@ -1,55 +1,30 @@
-interface ISocketUser {
-  socketId: string;
-  userId: string;
-}
+import ExpoPushNotifications from "./ExpoPushNotifications";
 
-class WebSockets {
-  users: Array<ISocketUser> = [];
-  io: any = null;
+const socketioAuth = require("socketio-auth");
 
-  init(_io: any) {
-    this.io = _io;
-  }
+const authenticate = (socket: any, data: any, cb: Function) => {
+  cb(null, !!data);
+};
 
-  connection(client: any) {
-    console.log('client connected on websocket');
+const postAuthenticate = (socket: any, data: any) => {
+  const user = {
+    ...data,
+  };
+  delete user.token;
 
-    // event fired when the chat room is disconnected
-    client.on("disconnect", () => {
-      this.users = this.users?.filter?.((user: any) => user.socketId !== client.id);
-    });
+  // broadcast user status change to other users
+  // client.emit('user:status', { userid: client.useris, lastlogin: client.lastlogin })
 
-    // add identity of user mapped to the socket id
-    client.on("identity", (userId: string) => {
-      console.log('identity', userId)
-      this.users.push({
-        socketId: client.id,
-        userId: userId,
-      });
-    });
+  socket.client.user = user;
+  ExpoPushNotifications.saveToken(user?.pushToken);
+};
 
-    // subscribe person to chat & other user as well
-    client.on("subscribe", (room: any, otherUserId: string = "") => {
-      this.subscribeOtherUser(room, otherUserId);
-      client.join(room);
-    });
+export default class WebSockets {
+  static io: any = null;
+  static users: any = {};
 
-    // mute a chat room
-    client.on("unsubscribe", (room: any) => {
-      client.leave(room);
-    });
-  }
-
-  subscribeOtherUser(room: any, otherUserId: string) {
-    const userSockets = this.users.filter((user) => user.userId === otherUserId);
-
-    userSockets.map((userInfo) => {
-      const socketConn = this.io.sockets.connected(userInfo.socketId);
-      if (socketConn) {
-        socketConn.join(room);
-      }
-    });
+  static init(io: any) {
+    socketioAuth(io, { authenticate, postAuthenticate, timeout: "none" });
+    this.io = io;
   }
 }
-
-export default new WebSockets();

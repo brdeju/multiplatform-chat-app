@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import useCachedResources from './src/hooks/useCachedResources';
 import SocketProvider from './src/contexts/socket';
 import AuthProvider from './src/contexts/auth';
+import PushNotificationsProvider from './src/contexts/pushNotifications';
 import Main from './src/Main';
 
 function App() {
@@ -14,14 +15,16 @@ function App() {
     return null;
   } else {
     return (
-      <AuthProvider>
-        <SocketProvider>
-          <SafeAreaProvider>
-            <Main />
-            <StatusBar />
-          </SafeAreaProvider>
-        </SocketProvider>
-      </AuthProvider>
+      <SocketProvider>
+        <PushNotificationsProvider>
+          <AuthProvider>
+            <SafeAreaProvider>
+              <Main />
+              <StatusBar />
+            </SafeAreaProvider>
+          </AuthProvider>
+        </PushNotificationsProvider>
+      </SocketProvider>
     );
   }
 }
